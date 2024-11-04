@@ -26,7 +26,7 @@ FROM base AS prod_deps
 
 WORKDIR /app
 
-COPY --from=deps /app/package* .
+COPY --from=deps /app/package* ./
 COPY --from=deps /app/node_modules ./node_modules
 
 RUN npm ci --omit=dev
