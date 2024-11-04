@@ -1,12 +1,12 @@
 # === base
-FROM --platform=${BUILDPLATFORM:-linux/arm64} node:22-slim AS base
+FROM node:22-slim AS base
 
 # === deps
 FROM base AS deps
 
 WORKDIR /app
 
-COPY package* .
+COPY package* . 
 
 RUN npm install
 
@@ -32,7 +32,7 @@ COPY --from=deps /app/node_modules ./node_modules
 RUN npm ci --omit=dev
 
 # === runner
-FROM --platform=${BUILDPLATFORM:-linux/arm64} gcr.io/distroless/nodejs22-debian12 AS runner
+FROM gcr.io/distroless/nodejs22-debian12 AS runner
 
 WORKDIR /app
 
