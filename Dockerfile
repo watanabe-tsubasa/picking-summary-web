@@ -40,7 +40,7 @@ ENV HOSTNAME=0.0.0.0
 ENV NODE_ENV=production
 ENV PORT=3000
 
-COPY --from=prod_deps --chown=nonroot:nonroot /app/package* .
+COPY --from=prod_deps --chown=nonroot:nonroot /app/package* ./
 COPY --from=prod_deps --chown=nonroot:nonroot /app/node_modules ./node_modules
 COPY --from=builder --chown=nonroot:nonroot /app/public ./public
 COPY --from=builder --chown=nonroot:nonroot /app/.next ./.next
