@@ -1,10 +1,10 @@
-import { FetchButton } from "@/components/fetcher";
+import FileHandler from "@/components/FileHandler";
 import Image from "next/image";
 
 export default function Home() {
   return (
     <div className="grid grid-rows items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start max-w-[600px]">
+      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start sm:w-[600px] max-w-[600px]">
         <h1 className="text-4xl font-bold">
           ピッキング履歴まとめ
         </h1>
@@ -20,10 +20,7 @@ export default function Home() {
               <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
                 ドラッグ&ドロップ領域
               </code>
-              または
-              <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-                アップロードボタン
-              </code>
+
               からアップロード
             </li>
             <li>
@@ -34,7 +31,7 @@ export default function Home() {
             </li>
           </ol>
         </div>
-        <FetchButton>ボタン</FetchButton>
+        <FileHandler />
 
       </main>
       <footer className="row-start-3 flex gap-6 flex-col items-center justify-center">
@@ -50,9 +47,9 @@ export default function Home() {
           <p className="text-2xl">and</p>
           <Image
             className="dark:invert"
-            src="/header_light.svg"
-            alt="tauri logo"
-            width={120}
+            src="/googlecloud.png"
+            alt="cloudrun logo"
+            width={170}
             height={38}
           />
         </div>
