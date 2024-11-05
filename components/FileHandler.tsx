@@ -60,7 +60,11 @@ const FileHandler = () => {
            onClick={processing}
            disabled={isProcessing}>
             {isProcessing ?
-              <Loader2 className='animate-spin' /> :
+              <div>
+                {"  "}
+                <Loader2 className='animate-spin' />
+                {"  "}
+              </div>:
               'キャンセルしたのは間違いだったのでやはり処理を行う'
             }
           </Button>

@@ -49,11 +49,12 @@ const UploadDialog: React.FC<UploadDialogProps> = ({
             やめる
           </AlertDialogCancel>
           <Button
+           className="min-w-36"
            onClick={onClickProcess}
            disabled={isProcessing}
           >
             {isProcessing ?
-              <Loader2 className="animate-spin" /> :
+              <Loader2 className='animate-spin' />:
               '処理する'
             }
           </Button>
