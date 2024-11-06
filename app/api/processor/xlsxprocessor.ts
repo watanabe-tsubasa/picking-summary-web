@@ -73,7 +73,7 @@ export const dfToExcel = async(df: pl.DataFrame) => {
   const imageWidth = 150;
   const imageHeight = 50;
   const widthPoints = imageWidth / 7.5; // Excel列幅の単位調整
-  const heightPoints = imageHeight * 0.75; // 行高さに変換
+  const heightPoints = imageHeight * 0.75 + 10; // 行高さに変換
 
   let rowIndex = 1;
   if (!worksheet) return;
@@ -104,7 +104,10 @@ export const dfToExcel = async(df: pl.DataFrame) => {
 
 const generateBarcodeBuffer = (barcode: string, height: number, width: number) => {
   const canvas = createCanvas(width, height);
-  JsBarcode(canvas, barcode, { format: "CODE128" });
+  JsBarcode(canvas, barcode, {
+    format: "CODE128",
+    displayValue: false
+  });
   return canvas.toBuffer("image/png");
 }
 
