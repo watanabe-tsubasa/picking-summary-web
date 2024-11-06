@@ -17,7 +17,7 @@ export const excelToCsv = async (fileBuffer: ArrayBuffer) => {
   return Buffer.from(csv, 'utf-8');
 };
 
-export const processCsvToDf = async (csvBuffer: Buffer<ArrayBuffer>) => {
+export const processCsvToDf = async (csvBuffer: Buffer) => {
   const df = pl.readCSV(csvBuffer);
   const df_processed = (
     df
