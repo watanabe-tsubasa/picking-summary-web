@@ -1,4 +1,5 @@
 'use client'
+
 import { useState } from 'react';
 import FileDropZone from './FileDropZone';
 import UploadDialog from './UploadDialog';
@@ -12,12 +13,37 @@ const FileHandler = () => {
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
 
   const processing = async () => {
+    if (!files) return;
+
     setIsProcessing(true);
-    setTimeout(() => {
-      setIsProcessing(false);
+    const formData = new FormData();
+    files.forEach(file => formData.append('files', file));
+
+    try {
+      const res = await fetch('/api/processor', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!res.ok) throw new Error('ファイルの処理に失敗しました')
+
+      const blob = await res.blob()
+      const downloadURL = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadURL;
+      link.download = '処理結果.xlsx';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
       setFiles(null);
       setIsDialogOpen(false);
-    }, 1000)
+    } catch (error) {
+      setIsProcessing(false)
+      setErrorMessage('ファイルのアップロード中にエラーが発生しました')
+      console.log(error)
+    }
+    setIsProcessing(false);
   }
 
   const onOpenChange = () => {
