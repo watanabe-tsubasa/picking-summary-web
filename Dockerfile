@@ -8,7 +8,7 @@ WORKDIR /app
 
 COPY package* . 
 
-RUN npm install --force
+RUN npm install
 
 # === builder
 FROM base AS builder
