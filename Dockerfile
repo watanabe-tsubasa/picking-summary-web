@@ -12,6 +12,8 @@ RUN apt-get update && apt-get install -y \
     librsvg2-dev \
     fonts-noto-cjk \
     fontconfig \
+    fonts-dejavu-core \
+    fonts-liberation \ 
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
