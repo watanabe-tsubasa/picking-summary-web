@@ -1,10 +1,21 @@
 # === base
 FROM node:20-slim AS base
 
-# === deps
-FROM base AS deps
+# 必要なシステムパッケージをインストール
+RUN apt-get update && apt-get install -y \
+    libuuid1 \
+    libcairo2 \
+    libpango-1.0-0 \
+    libpangocairo-1.0-0 \
+    libjpeg62-turbo \
+    libgif-dev \
+    librsvg2-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
+
+# === deps
+FROM base AS deps
 
 COPY package* . 
 
@@ -16,23 +27,13 @@ FROM base AS builder
 WORKDIR /app
 
 COPY --from=deps /app/node_modules ./node_modules
-
 COPY . .
 
 RUN npm run build
 
-# === prod deps
-FROM base AS prod_deps
-
-WORKDIR /app
-
-COPY --from=deps /app/package* ./
-COPY --from=deps /app/node_modules ./node_modules
-
-RUN npm ci --omit=dev
-
 # === runner
-FROM gcr.io/distroless/nodejs20-debian12 AS runner
+# ベースイメージを`node:20-slim`に変更（必要ライブラリが含まれているため）
+FROM node:20-slim AS runner
 
 WORKDIR /app
 
@@ -40,12 +41,12 @@ ENV HOSTNAME=0.0.0.0
 ENV NODE_ENV=production
 ENV PORT=3000
 
-COPY --from=prod_deps --chown=nonroot:nonroot /app/package* ./
-COPY --from=prod_deps --chown=nonroot:nonroot /app/node_modules ./node_modules
-COPY --from=builder --chown=nonroot:nonroot /app/public ./public
-COPY --from=builder --chown=nonroot:nonroot /app/.next ./.next
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/package*.json ./
 
-USER nonroot
+USER node
 
 EXPOSE 3000
 
