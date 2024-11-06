@@ -11,6 +11,7 @@ RUN apt-get update && apt-get install -y \
     libgif-dev \
     librsvg2-dev \
     fonts-noto-cjk \
+    fontconfig \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -37,6 +38,9 @@ RUN npm run build
 FROM node:20-slim AS runner
 
 WORKDIR /app
+
+# ここに書き込み権限を付与
+RUN mkdir -p /app/.next/cache/images && chmod -R 777 /app/.next/cache
 
 ENV HOSTNAME=0.0.0.0
 ENV NODE_ENV=production
