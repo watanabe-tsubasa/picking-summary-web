@@ -5,12 +5,15 @@ import FileDropZone from './FileDropZone';
 import UploadDialog from './UploadDialog';
 import { Button } from './ui/button';
 import { Loader2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 const FileHandler = () => {
   const [files, setFiles] = useState<File[] | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
+
+  const { toast } = useToast()
 
   const processing = async () => {
     if (!files) return;
@@ -25,7 +28,10 @@ const FileHandler = () => {
         body: formData
       });
 
-      if (!res.ok) throw new Error('ファイルの処理に失敗しました')
+      if (!res.ok) {
+        const errorRes = await res.json();
+        throw new Error(errorRes.message || 'ファイルの処理に失敗しました')
+      }
 
       const blob = await res.blob()
       const downloadURL = URL.createObjectURL(blob);
@@ -38,11 +44,22 @@ const FileHandler = () => {
 
       setFiles(null);
       setIsDialogOpen(false);
+      toast({
+        title: "result",
+        description: 'ファイルの生成に成功しました\nダウンロード完了までお待ちください',
+        duration: 3000
+      })
     } catch (error) {
       setIsProcessing(false)
       setErrorMessage('ファイルのアップロード中にエラーが発生しました')
-      console.log(error)
-    }
+      toast({
+        variant: "destructive",
+        title: "error",
+        description: error instanceof Error ? error.message : '不明なエラーが発生しました',
+        duration: 3000
+      })
+      console.error(error)
+    } 
     setIsProcessing(false);
   }
 

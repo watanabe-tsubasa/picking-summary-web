@@ -19,30 +19,38 @@ export const excelToCsv = async (fileBuffer: ArrayBuffer) => {
 
 export const processCsvToDf = async (csvBuffer: Buffer) => {
   const df = pl.readCSV(csvBuffer);
-  const df_processed = (
-    df
-    .select(...[
-      "外部注文番号",
-      "荷受け人",
-      "備考",
-      "商品コード",
-      "商品名称",
-      "ユーザー購入数量",
-      "ピッキング数量",
-      "欠品数量",
-      "代替品数量",
-      "商品価格",
-      "商品ステータス",
-      "代替商品コード",
-      "代替商品名称",
-      "明細修正",
-    ])
-    .filter(
-      pl.col("明細修正").eq(pl.lit("有"))
-    )
-  )
+  const requiredColumns = [
+    "外部注文番号",
+    "荷受け人",
+    "備考",
+    "商品コード",
+    "商品名称",
+    "ユーザー購入数量",
+    "ピッキング数量",
+    "欠品数量",
+    "代替品数量",
+    "商品価格",
+    "商品ステータス",
+    "代替商品コード",
+    "代替商品名称",
+    "明細修正",
+  ];
 
-  return df_processed
+  // 必須カラムが存在するかを確認
+  const missingColumns = requiredColumns.filter(col => !df.columns.includes(col));
+  if (missingColumns.length > 0) {
+    throw new Error('アップロードするファイルを確認してください');
+  }
+  try {
+    const df_processed = df
+      .select(...requiredColumns)
+      .filter(pl.col("明細修正").eq(pl.lit("有")));
+
+    return df_processed;
+  } catch (error) {
+    console.error(error);
+    throw new Error('アップロードするファイルを確認してください');
+  }
 }
 
 export const dfToExcel = async(df: pl.DataFrame) => {

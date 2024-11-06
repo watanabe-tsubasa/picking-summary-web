@@ -7,7 +7,7 @@ export const config = {
   },
 };
 
-export const POST = async (req: NextRequest) => {
+export const POST = async (req: NextRequest): Promise<NextResponse<Buffer | { message: string }>> => {
   try {
     // ファイルデータをバッファとして受け取る
     const formData = await req.formData();
@@ -37,7 +37,10 @@ export const POST = async (req: NextRequest) => {
     });
   } catch (error) {
     console.error('File processing error:', error);
-    return new NextResponse(JSON.stringify({ message: 'ファイルの処理に失敗しました' }), {
+    console.error('Error type:', typeof error, error?.constructor?.name);
+    return new NextResponse(JSON.stringify({
+      message: error instanceof Error ? error.message : 'ファイルの処理に失敗しました'
+     }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     });
