@@ -32,7 +32,7 @@ COPY --from=deps /app/node_modules ./node_modules
 RUN npm ci --omit=dev
 
 # === runner
-FROM gcr.io/distroless/nodejs22-debian12 AS runner
+FROM gcr.io/distroless/nodejs21-debian12 AS runner
 
 WORKDIR /app
 
