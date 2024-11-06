@@ -1,5 +1,5 @@
 # === base
-FROM node:22-slim AS base
+FROM node:21-slim AS base
 
 # === deps
 FROM base AS deps
