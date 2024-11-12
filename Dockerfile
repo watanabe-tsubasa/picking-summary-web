@@ -35,6 +35,11 @@ RUN npm run build
 # ベースイメージを`node:20-slim`に変更（必要ライブラリが含まれているため）
 FROM node:20-slim AS runner
 
+# フォントをインストール
+RUN apt-get update && apt-get install -y \
+    fonts-noto-cjk \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
 ENV HOSTNAME=0.0.0.0
