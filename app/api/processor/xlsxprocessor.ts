@@ -2,7 +2,6 @@ import * as ExcelJS from "exceljs";
 import * as XLSX from "xlsx"
 import pl from "nodejs-polars";
 import { Buffer } from "node:buffer";
-import { Stream } from "node:stream";
 import { createCanvas } from "canvas";
 import JsBarcode from "jsbarcode";
 
@@ -20,22 +19,21 @@ export const excelToCsv = async (fileBuffer: ArrayBuffer) => {
 export const processCsvToDf = async (csvBuffer: Buffer) => {
   const df = pl.readCSV(csvBuffer);
   const requiredColumns = [
-    "外部注文番号",
-    "荷受け人",
-    "備考",
-    "商品コード",
-    "商品名称",
-    "ユーザー購入数量",
-    "ピッキング数量",
-    "欠品数量",
-    "代替品数量",
-    "商品価格",
-    "商品ステータス",
-    "代替商品コード",
-    "代替商品名称",
-    "明細修正",
+    "外部注文番号", // A
+    "荷受け人", // B
+    "備考", // C
+    "商品コード", // D
+    "商品名称", // E
+    "ユーザー購入数量", // F
+    "ピッキング数量", // G
+    "欠品数量", // H
+    "代替品数量", // I
+    "商品価格", // J
+    "商品ステータス", // K
+    "代替商品コード", // L
+    "代替商品名称", // M
+    "明細修正", // N
   ];
-
   // 必須カラムが存在するかを確認
   const missingColumns = requiredColumns.filter(col => !df.columns.includes(col));
   if (missingColumns.length > 0) {
@@ -54,20 +52,10 @@ export const processCsvToDf = async (csvBuffer: Buffer) => {
 }
 
 export const dfToExcel = async(df: pl.DataFrame) => {
-  let csvBuffer: Buffer = Buffer.alloc(0);
-  const writeStream = new Stream.Writable({
-    write(chunk, _, callback) {
-      csvBuffer = Buffer.concat([csvBuffer, chunk]); // chunkをバッファに追加
-      callback();
-    },
-  });
-  df.writeCSV(writeStream);
-
-  // Readableストリームを生成してExcelJSで読み込む
-  const readableStream = Stream.Readable.from(csvBuffer.toString('utf-8')); // BufferからReadableストリームに変換
+  const dfColumns = df.columns;
+  const dfRows = df.toRecords()
   const workbook = new ExcelJS.Workbook();
-  await workbook.csv.read(readableStream);
-  const worksheet = workbook.getWorksheet(1);
+  const worksheet = workbook.addWorksheet('Sheet1');
   
   const barcodes = df.select("商品コード").toSeries();
   const imageWidth = 150;
@@ -75,13 +63,25 @@ export const dfToExcel = async(df: pl.DataFrame) => {
   const widthPoints = imageWidth / 7.5; // Excel列幅の単位調整
   const heightPoints = imageHeight * 0.75 + 10; // 行高さに変換
 
+  worksheet.addTable({
+    name: 'MyTable',
+    ref: 'A1',
+    headerRow: true,
+    totalsRow: false,
+    style: {
+      theme: 'TableStyleLight1',
+      showRowStripes: true,
+    },
+    columns: [...dfColumns.map(name => ({name: name})), {name: 'バーコード'}],
+    rows: dfRows.map(row => dfColumns.map(col => row[col])),
+  });
+
   let rowIndex = 1;
-  if (!worksheet) return;
-  worksheet.getCell('O1').value = 'バーコード';
   worksheet.getColumn('O').width = widthPoints;
 
-  for (const barcode of barcodes) {
+  const lastRowNum = df.shape.height;
 
+  for (const barcode of barcodes) {
     const barcodeStr = barcode.toString();
     const barcodeBuffer = generateBarcodeBuffer(barcodeStr, imageWidth, imageHeight);
     insertImageToCell(
@@ -94,11 +94,9 @@ export const dfToExcel = async(df: pl.DataFrame) => {
       imageHeight,
       heightPoints
     );
-
     rowIndex += 1;
   }
-
-
+  setWorksheetProps(worksheet, lastRowNum); // エクセルの印刷範囲などセット
   return await workbook.xlsx.writeBuffer();
 }
 
@@ -132,3 +130,72 @@ const insertImageToCell = (
     ext: { width: imageWidth, height: imageHeight }, // 画像サイズ
   });
 }
+
+const setWorksheetProps = (worksheet: ExcelJS.Worksheet, lastRowNum: number) => {
+  worksheet.pageSetup.printArea = `A1:O${lastRowNum}`
+  worksheet.pageSetup.printTitlesRow = '1:1';
+  worksheet.pageSetup.fitToPage = true;
+  worksheet.pageSetup.fitToWidth = 1; // 横幅を合わせる
+  worksheet.pageSetup.fitToHeight = 0; // 縦方向枚数は無視
+  worksheet.pageSetup.orientation = 'landscape'; // 横向き
+  setWorksheetFont(worksheet, 'Meiryo UI');
+  adjustWorksheet(worksheet);
+  worksheet.pageSetup.margins = {
+    left: 0.1,    // 左余白
+    right: 0.1,   // 右余白
+    top: 0.2,     // 上余白
+    bottom: 0.2,  // 下余白
+    header: 0.1,  // ヘッダー余白
+    footer: 0.1   // フッター余白
+  };
+  worksheet.pageSetup.paperSize = 9; // A4
+  setNumberFormatForColumns(worksheet, [4, 12], '0');
+}
+
+const setWorksheetFont = (worksheet: ExcelJS.Worksheet, fontName: string) => {
+  worksheet.eachRow((row) => {
+    row.eachCell((cell) => {
+      cell.font = { name: fontName };
+    });
+  });
+};
+
+const adjustWorksheet = (worksheet: ExcelJS.Worksheet) => {
+  // 全セルの「折り返して全体を表示」設定
+  worksheet.eachRow((row) => {
+    row.eachCell((cell) => {
+      cell.alignment = { wrapText: true };
+    });
+  });
+
+  const excludedColumnIndex = [14];  // バーコードの列
+
+  // 各列の幅を自動調整
+  worksheet.columns.forEach((_, colIdx) => {
+    if (colIdx in excludedColumnIndex) return
+    let maxLength = 1; // 最小列幅を設定
+    const column = worksheet.getColumn(colIdx);
+    column.eachCell({ includeEmpty: false }, (cell) => {
+      const cellValue = cell.value ? cell.value.toString() : '';
+      const cellLength = cellValue.length;
+      if (cellLength > maxLength) {
+        maxLength = cellLength;
+      }
+    });
+    column.width = (maxLength <= 30) ? maxLength + 4 : 30; // 余白を考慮して列幅を設定
+  });
+};
+
+const setNumberFormatForColumns = (
+  worksheet: ExcelJS.Worksheet,
+  columnNumbers: number[],
+  numberFormat: string
+) => {
+  columnNumbers.forEach((colNumber) => {
+    const column = worksheet.getColumn(colNumber);
+    column.eachCell((cell) => {
+      // 数値書式を設定
+      cell.numFmt = numberFormat;
+    });
+  });
+};
