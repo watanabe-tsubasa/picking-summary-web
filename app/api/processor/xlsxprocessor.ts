@@ -106,7 +106,7 @@ const generateBarcodeBuffer = (barcode: string, height: number, width: number) =
   const canvas = createCanvas(width, height);
   JsBarcode(canvas, barcode, {
     format: "CODE128",
-    displayValue: false
+    displayValue: true
   });
   return canvas.toBuffer("image/png");
 }
