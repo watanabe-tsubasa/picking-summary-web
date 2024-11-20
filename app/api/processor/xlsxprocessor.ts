@@ -19,20 +19,20 @@ export const excelToCsv = async (fileBuffer: ArrayBuffer) => {
 export const processCsvToDf = async (csvBuffer: Buffer) => {
   const df = pl.readCSV(csvBuffer);
   const requiredColumns = [
-    "外部注文番号", // A
-    "荷受け人", // B
-    "備考", // C
-    "商品コード", // D
-    "商品名称", // E
-    "ユーザー購入数量", // F
-    "ピッキング数量", // G
-    "欠品数量", // H
-    "代替品数量", // I
-    "商品価格", // J
-    "商品ステータス", // K
-    "代替商品コード", // L
-    "代替商品名称", // M
-    "明細修正", // N
+    "外部注文番号", // A 1
+    "荷受け人", // B 2
+    "備考", // C 3
+    "商品コード", // D 4
+    "商品名称", // E 5
+    "ユーザー購入数量", // F 6
+    "ピッキング数量", // G 7
+    "欠品数量", // H 8
+    "代替品数量", // I 9
+    "商品価格", // J 10
+    "商品ステータス", // K 11
+    "代替商品コード", // L 12
+    "代替商品名称", // M 13
+    "明細修正", // N 14
   ];
   // 必須カラムが存在するかを確認
   const missingColumns = requiredColumns.filter(col => !df.columns.includes(col));
@@ -132,6 +132,7 @@ const insertImageToCell = (
 }
 
 const setWorksheetProps = (worksheet: ExcelJS.Worksheet, lastRowNum: number) => {
+  const numberCols = [4, 12]
   worksheet.pageSetup.printArea = `A1:O${lastRowNum}`
   worksheet.pageSetup.printTitlesRow = '1:1';
   worksheet.pageSetup.fitToPage = true;
@@ -139,7 +140,7 @@ const setWorksheetProps = (worksheet: ExcelJS.Worksheet, lastRowNum: number) => 
   worksheet.pageSetup.fitToHeight = 0; // 縦方向枚数は無視
   worksheet.pageSetup.orientation = 'landscape'; // 横向き
   setWorksheetFont(worksheet, 'Meiryo UI');
-  adjustWorksheet(worksheet);
+  adjustWorksheet(worksheet, numberCols);
   worksheet.pageSetup.margins = {
     left: 0.1,    // 左余白
     right: 0.1,   // 右余白
@@ -149,7 +150,7 @@ const setWorksheetProps = (worksheet: ExcelJS.Worksheet, lastRowNum: number) => 
     footer: 0.1   // フッター余白
   };
   worksheet.pageSetup.paperSize = 9; // A4
-  setNumberFormatForColumns(worksheet, [4, 12], '0');
+  setNumberFormatForColumns(worksheet, numberCols, '0');
 }
 
 const setWorksheetFont = (worksheet: ExcelJS.Worksheet, fontName: string) => {
@@ -160,7 +161,10 @@ const setWorksheetFont = (worksheet: ExcelJS.Worksheet, fontName: string) => {
   });
 };
 
-const adjustWorksheet = (worksheet: ExcelJS.Worksheet) => {
+const adjustWorksheet = (
+  worksheet: ExcelJS.Worksheet,
+  columnNumbers: number[]
+) => {
   // 全セルの「折り返して全体を表示」設定
   worksheet.eachRow((row) => {
     row.eachCell((cell) => {
@@ -168,21 +172,20 @@ const adjustWorksheet = (worksheet: ExcelJS.Worksheet) => {
     });
   });
 
-  const excludedColumnIndex = [14];  // バーコードの列
-
   // 各列の幅を自動調整
   worksheet.columns.forEach((_, colIdx) => {
-    if (colIdx in excludedColumnIndex) return
+    if (!colIdx) return
+    const margin = columnNumbers.includes(colIdx) ? 8 : 4
     let maxLength = 1; // 最小列幅を設定
     const column = worksheet.getColumn(colIdx);
-    column.eachCell({ includeEmpty: false }, (cell) => {
+    column.eachCell({ includeEmpty: true }, (cell) => {
       const cellValue = cell.value ? cell.value.toString() : '';
       const cellLength = cellValue.length;
       if (cellLength > maxLength) {
         maxLength = cellLength;
       }
     });
-    column.width = (maxLength <= 30) ? maxLength + 4 : 30; // 余白を考慮して列幅を設定
+    column.width = (maxLength <= 30) ? maxLength + margin : 30; // 余白を考慮して列幅を設定
   });
 };
 
