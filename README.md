@@ -8,6 +8,8 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 - 会社で使う想定であり、Google Cloudの利用を求められたため、DockerfileをCloud Runにデプロイする想定で記述
 
+- 会社用のトリガーも作成
+
 ## Getting Started
 
 First, run the development server:
