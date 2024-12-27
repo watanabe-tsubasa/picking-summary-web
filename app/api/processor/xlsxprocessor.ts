@@ -82,18 +82,28 @@ export const dfToExcel = async(df: pl.DataFrame) => {
   const lastRowNum = df.shape.height;
 
   for (const barcode of barcodes) {
-    const barcodeStr = barcode.toString();
-    const barcodeBuffer = generateBarcodeBuffer(barcodeStr, imageWidth, imageHeight);
-    insertImageToCell(
-      workbook,
-      worksheet,
-      barcodeBuffer as unknown as ExcelJS.Buffer,
-      14,
-      rowIndex,
-      imageWidth,
-      imageHeight,
-      heightPoints
-    );
+    let barcodeStr: string;
+    try {
+      barcodeStr = barcode?.toString() ?? ''; // null または undefined の場合は空文字列を使用
+      if (!barcodeStr) {
+        console.warn(`Invalid barcode value at row ${rowIndex}: ${barcode}`);
+        rowIndex += 1;
+        continue; // スキップして次の行へ
+      }
+      const barcodeBuffer = generateBarcodeBuffer(barcodeStr, imageWidth, imageHeight);
+      insertImageToCell(
+        workbook,
+        worksheet,
+        barcodeBuffer as unknown as ExcelJS.Buffer,
+        14,
+        rowIndex,
+        imageWidth,
+        imageHeight,
+        heightPoints
+      );
+    } catch (error) {
+      console.error(`Error processing barcode at row ${rowIndex}:`, error);
+    }
     rowIndex += 1;
   }
   setWorksheetProps(worksheet, lastRowNum); // エクセルの印刷範囲などセット
