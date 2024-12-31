@@ -115,7 +115,7 @@ export const dfToExcel = async(df: pl.DataFrame) => {
     }));
   // console.log(barcodeCols)
 
-  const lastRowNum = updatedColumns.length;
+  const lastRowNum = df.shape.height;
 
   for (const barcodeCol of barcodeCols) {
     
@@ -202,7 +202,7 @@ const setWorksheetProps = (
   numberCols: number[], // JANコードが記載されている列番号
   widthPoints: number // バーコードの横幅
 ) => {
-  worksheet.pageSetup.printArea = `A1:O${lastRowNum}`
+  worksheet.pageSetup.printArea = `A1:Q${lastRowNum}`
   worksheet.pageSetup.printTitlesRow = '1:1';
   worksheet.pageSetup.fitToPage = true;
   worksheet.pageSetup.fitToWidth = 1; // 横幅を合わせる
