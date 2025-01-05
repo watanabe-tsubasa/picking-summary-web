@@ -115,7 +115,7 @@ export const dfToExcel = async(df: pl.DataFrame) => {
     }));
   // console.log(barcodeCols)
 
-  const lastRowNum = df.shape.height;
+  const lastRowNum = df.shape.height + 1;
 
   for (const barcodeCol of barcodeCols) {
     
