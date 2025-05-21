@@ -1,5 +1,5 @@
 # === base
-FROM node:24-slim AS base
+FROM node:22-slim AS base
 
 # 必要なシステムパッケージをインストール canvas => napi-rs/canvasにしたため、不要なパッケージをコメントアウト
 RUN apt-get update && apt-get install -y \
@@ -32,8 +32,8 @@ COPY . .
 RUN npm run build
 
 # === runner
-# ベースイメージを`node:24-slim`に変更（必要ライブラリが含まれているため）
-FROM node:24-slim AS runner
+# ベースイメージを`node:22-slim`に変更（必要ライブラリが含まれているため）
+FROM node:22-slim AS runner
 
 # フォントをインストール
 RUN apt-get update && apt-get install -y \
