@@ -17,7 +17,7 @@ WORKDIR /app
 # === deps
 FROM base AS deps
 
-COPY package* . 
+COPY package*.json ./
 
 RUN npm install
 
