@@ -3,13 +3,13 @@ FROM node:20-slim AS base
 
 # 必要なシステムパッケージをインストール canvas => napi-rs/canvasにしたため、不要なパッケージをコメントアウト
 RUN apt-get update && apt-get install -y \
-    # libuuid1 \
-    # libcairo2 \
-    # libpango-1.0-0 \
-    # libpangocairo-1.0-0 \
-    # libjpeg62-turbo \
-    # libgif-dev \
-    # librsvg2-dev \
+    libuuid1 \
+    libcairo2 \
+    libpango-1.0-0 \
+    libpangocairo-1.0-0 \
+    libjpeg62-turbo \
+    libgif-dev \
+    librsvg2-dev \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
