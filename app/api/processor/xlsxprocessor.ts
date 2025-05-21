@@ -58,7 +58,7 @@ export const processCsvToDf = async (csvBuffer: Buffer) => {
       .withColumn(
         pl.Series(createTimeRow(df_processed.select('配送時間').toSeries())).alias('配送時間')
       )
-      .sort(['配送時間', '外部注文番号'])
+      .sort(['配送時間', '外部注文番号']) as pl.DataFrame
     return df_processed;
   } catch (error) {
     console.error(error);

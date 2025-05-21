@@ -18,8 +18,8 @@ WORKDIR /app
 FROM base AS deps
 
 COPY package*.json ./
-
-RUN npm install
+# nodejs-polarsのネイティブバイナリも追加
+RUN npm install && npm install nodejs-polars-linux-x64-gnu
 
 # === builder
 FROM base AS builder
