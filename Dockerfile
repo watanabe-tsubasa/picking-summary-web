@@ -1,15 +1,15 @@
 # === base
-FROM node:20-slim AS base
+FROM node:24-slim AS base
 
-# 必要なシステムパッケージをインストール
+# 必要なシステムパッケージをインストール canvas => napi-rs/canvasにしたため、不要なパッケージをコメントアウト
 RUN apt-get update && apt-get install -y \
-    libuuid1 \
-    libcairo2 \
-    libpango-1.0-0 \
-    libpangocairo-1.0-0 \
-    libjpeg62-turbo \
-    libgif-dev \
-    librsvg2-dev \
+    # libuuid1 \
+    # libcairo2 \
+    # libpango-1.0-0 \
+    # libpangocairo-1.0-0 \
+    # libjpeg62-turbo \
+    # libgif-dev \
+    # librsvg2-dev \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -17,9 +17,9 @@ WORKDIR /app
 # === deps
 FROM base AS deps
 
-COPY package* . 
-
-RUN npm install
+COPY package*.json ./
+# nodejs-polarsのネイティブバイナリも追加
+RUN npm install && npm install nodejs-polars-linux-x64-gnu
 
 # === builder
 FROM base AS builder
@@ -32,8 +32,8 @@ COPY . .
 RUN npm run build
 
 # === runner
-# ベースイメージを`node:20-slim`に変更（必要ライブラリが含まれているため）
-FROM node:20-slim AS runner
+# ベースイメージを`node:24-slim`に変更（必要ライブラリが含まれているため）
+FROM node:24-slim AS runner
 
 # フォントをインストール
 RUN apt-get update && apt-get install -y \

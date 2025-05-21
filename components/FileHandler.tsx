@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import FileDropZone from './FileDropZone';
 import UploadDialog from './UploadDialog';
-import { Button } from './ui/button';
+import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 

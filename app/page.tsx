@@ -1,9 +1,14 @@
 import FileHandler from "@/components/FileHandler";
+import { UpdateDialog } from "@/components/UpdateDialog";
+import { updates } from "@/lib/updates";
 import Image from "next/image";
 
 export default function Home() {
   return (
     <div className="grid grid-rows items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
+      <header className="flex flex-col gap-4 items-end justify-center row-start-1 w-full sm:w-[600px] max-w-[600px]">
+        <UpdateDialog updates={updates} />
+      </header>
       <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start sm:w-[600px] max-w-[600px]">
         <h1 className="text-4xl font-bold">
           ピッキング履歴まとめ
@@ -38,7 +43,7 @@ export default function Home() {
       <div className="flex gap-x-4 items-end">
           <Image
             className="dark:invert"
-            src="https://nextjs.org/icons/next.svg"
+            src="/next.svg"
             alt="Next.js logo"
             width={180}
             height={38}
