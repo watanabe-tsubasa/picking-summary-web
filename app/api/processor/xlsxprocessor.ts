@@ -2,7 +2,7 @@ import * as ExcelJS from "exceljs";
 import * as XLSX from "xlsx"
 import pl from "nodejs-polars";
 import { Buffer } from "node:buffer";
-import { createCanvas } from "canvas";
+import { createCanvas } from "@napi-rs/canvas";
 import JsBarcode from "jsbarcode";
 import { schema } from "./csvSchema";
 import { getHours } from "./getHours";

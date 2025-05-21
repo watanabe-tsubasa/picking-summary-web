@@ -38,7 +38,7 @@ export default function Home() {
       <div className="flex gap-x-4 items-end">
           <Image
             className="dark:invert"
-            src="https://nextjs.org/icons/next.svg"
+            src="/next.svg"
             alt="Next.js logo"
             width={180}
             height={38}
