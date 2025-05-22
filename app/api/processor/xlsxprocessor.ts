@@ -134,7 +134,7 @@ export const dfToExcel = async(df: pl.DataFrame) => {
         insertImageToCell(
           workbook,
           worksheet,
-          barcodeBuffer as unknown as ExcelJS.Buffer,
+          barcodeBuffer,
           barcodeCol.num,
           rowIndex,
           imageWidth,
@@ -160,32 +160,62 @@ const generateBarcodeBuffer = (
   barcode: string,
   height: number,
   width: number
-) => {
-  const canvas = createCanvas(width, height);
-  if (barcode.startsWith("00000")) {
-    barcode = barcode.slice(5);
-  }
+): Buffer | null => {
   const format = barcode.length === 8 ? "EAN8" : "EAN13";
+  if (!barcode || !/^\d{8}$|^\d{13}$/.test(barcode)) {
+    console.warn(`Invalid barcode: "${barcode}"`);
+    return null;
+  }
 
-  JsBarcode(canvas, barcode, {
-    format: format,
-    displayValue: true
-  });
-  return canvas.toBuffer("image/png");
-}
+  if (format === "EAN13" && !isValidEAN13(barcode)) {
+    console.warn(`Invalid EAN-13 barcode: "${barcode}"`);
+    return null;
+  }
+
+  try {
+    const canvas = createCanvas(width, height);
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      console.warn("Canvas context is null");
+      return null;
+    }
+
+    JsBarcode(canvas, barcode, {
+      format: barcode.length === 8 ? "EAN8" : "EAN13",
+      displayValue: true
+    });
+
+    const buffer = canvas.toBuffer("image/png");
+    canvas.width = 0; // ← memory hint for GC
+    canvas.height = 0;
+    if (!Buffer.isBuffer(buffer) || buffer.byteLength < 1000) {
+      console.warn(`Invalid or suspicious buffer. Size: ${buffer?.byteLength}`);
+      return null;
+    }
+
+    return buffer;
+  } catch (error) {
+    console.error(`Barcode generation failed for "${barcode}"`, error);
+    return null;
+  }
+};
 
 const insertImageToCell = (
   workbook: ExcelJS.Workbook,
   worksheet: ExcelJS.Worksheet,
-  buffer: ExcelJS.Buffer,
+  buffer: Buffer | null,
   col: number,
   row: number,
   imageWidth: number,
   imageHeight: number,
   heightPoints: number
 ) => {
+  if (!buffer || buffer.length === 0) {
+    console.warn(`Skipping insertImageToCell: empty or invalid buffer at row ${row}`);
+    return;
+  }
   const imageId = workbook.addImage({
-    buffer: buffer,
+    buffer: buffer as unknown as ExcelJS.Buffer,
     extension: 'png',
   });
 
@@ -277,4 +307,13 @@ const setNumberFormatForColumns = (
       cell.numFmt = numberFormat;
     });
   });
+};
+
+const isValidEAN13 = (code: string): boolean => {
+  if (!/^\d{13}$/.test(code)) return false;
+  const digits = code.split('').map(Number);
+  const checkDigit = digits.pop()!;
+  const sum = digits.reduce((acc, d, i) => acc + d * (i % 2 === 0 ? 1 : 3), 0);
+  const calculated = (10 - (sum % 10)) % 10;
+  return checkDigit === calculated;
 };
